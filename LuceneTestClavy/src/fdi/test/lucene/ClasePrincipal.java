@@ -2,6 +2,7 @@ package fdi.test.lucene;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.Scanner;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -12,6 +13,7 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
@@ -33,15 +35,38 @@ public class ClasePrincipal {
 	public static void main(String[] args) {
 		 ClasePrincipal C = new ClasePrincipal();
 		C.process();
-		try {
-			TopDocs result = C.search("lucene");
-			for (ScoreDoc string : result.scoreDocs) {
-				System.out.println(C.getDocument(string));
+		
+		boolean salida=false;
+		String texto;
+		
+		Scanner sc = new Scanner(System.in);
+		System.out.println("introduce la querry");
+		while(!salida)
+		{
+			
+			
+			texto= sc.next();
+			
+			if (texto.toLowerCase().equals("exit()"))
+			{
+				salida=true;
+				break;
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
+			
+			try {
+				TopDocs result = C.search(texto);
+				System.out.println("Found: "+result.totalHits);
+				for (ScoreDoc string : result.scoreDocs) {
+					System.out.println(C.getDocument(string));
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
 		}
 		
+		
+		sc.close();
 		
 		
 	}
@@ -62,6 +87,7 @@ public class ClasePrincipal {
 		         FSDirectory.open(Paths.get("/tmp/luceneExample"));
 
 		IndexWriterConfig config = new IndexWriterConfig(analyzer);
+		config.setOpenMode(OpenMode.CREATE);
 		
 			IndexWriter w = new IndexWriter(index, config);
 			
