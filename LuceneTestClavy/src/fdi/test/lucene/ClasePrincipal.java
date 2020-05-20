@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Scanner;
@@ -85,11 +86,13 @@ public class ClasePrincipal {
 		
 		HashMap<Long, String> ClaseID2Nombre=new HashMap<Long, String>();
 		
+		HashMap<Long, String> Grammar2Nombre=new HashMap<Long, String>();
 		
 		Stack<CompleteElementType> Pendientes=new Stack<CompleteElementType>();
 		
 		for (CompleteGrammar gramm : object.getMetamodelGrammar()) {
 			Pendientes.addAll(gramm.getSons());
+			Grammar2Nombre.put(gramm.getClavilenoid(), gramm.getNombre().toLowerCase());
 		}
 		
 		
@@ -109,7 +112,8 @@ public class ClasePrincipal {
 			
 			ElemtId2ClaseID.put(ID, IDClass);
 			
-			ClaseID2Nombre.put(ID, Act.getName());
+			ClaseID2Nombre.put(ID, Act.getName().toLowerCase());
+			
 			
 			if (Act.getCollectionFather()!=null)
 				ElemtId2Grammar.put(ID, Act.getCollectionFather().getClavilenoid());
@@ -120,6 +124,11 @@ public class ClasePrincipal {
 		
 		if (debug)
 		{
+			System.out.println("//GRAMS");
+			for (Entry<Long, String> completeGramPair : Grammar2Nombre.entrySet()) {
+				System.out.println(completeGramPair.getKey()+": "+completeGramPair.getValue());
+			}
+			
 			System.out.println("//TYPES");
 			for (Entry<Long, String> completeElementTypePair : ClaseID2Nombre.entrySet()) {
 				System.out.println(completeElementTypePair.getKey()+": "+completeElementTypePair.getValue());
@@ -128,12 +137,29 @@ public class ClasePrincipal {
 			System.out.println("//DOCS");
 			for (CompleteDocuments document : object.getEstructuras()) {
 				System.out.println("ID: "+document.getClavilenoid());
+				System.out.println("-->"+document.getDescriptionText().toLowerCase());
+				for (CompleteElement element : document.getDescription()) {
+					System.out.print("-->..>"+element.getHastype().getName().toLowerCase());
+
+					 String Value=null;
+					 
+					 if (element instanceof CompleteTextElement)
+						 Value=((CompleteTextElement) element).getValue();
+					 
+					 if (element instanceof CompleteResourceElementURL)
+						 Value=((CompleteResourceElementURL) element).getValue();
+					 
+					 if (element instanceof CompleteResourceElementFile)
+						 Value=((CompleteResourceElementFile) element).getValue().getPath();
+					
+					System.out.println(": "+Value.toLowerCase());
+				}
 			}
 		}
 		
 		
 		 ClasePrincipal C = new ClasePrincipal();
-		C.process(object.getEstructuras(),ElemtId2ClaseID,ElemtId2Grammar,ClaseID2Nombre);
+		C.process(object.getEstructuras(),ElemtId2ClaseID,ElemtId2Grammar,ClaseID2Nombre,Grammar2Nombre);
 		
 		boolean salida=false;
 		String texto;
@@ -144,9 +170,9 @@ public class ClasePrincipal {
 		{
 			
 			
-			texto= sc.next();
+			texto= sc.next().toLowerCase();
 			
-			if (texto.toLowerCase().equals("exit()"))
+			if (texto.equals("exit()"))
 			{
 				salida=true;
 				break;
@@ -171,7 +197,7 @@ public class ClasePrincipal {
 	}
 
 	private void process(List<CompleteDocuments> estructuras, HashMap<Long, Long> elemtId2ClaseID,
-			HashMap<Long, Long> elemtId2Grammar, HashMap<Long, String> claseID2Nombre) {
+			HashMap<Long, Long> elemtId2Grammar, HashMap<Long, String> claseID2Nombre, HashMap<Long, String> grammar2Nombre) {
 		
 		StandardAnalyzer analyzer = new StandardAnalyzer();
 		
@@ -187,7 +213,7 @@ public class ClasePrincipal {
 			try {
 				
 				for (CompleteDocuments completeDocument : estructuras) {
-					addDoc(w,completeDocument,elemtId2ClaseID,elemtId2Grammar,claseID2Nombre);
+					addDoc(w,completeDocument,elemtId2ClaseID,elemtId2Grammar,claseID2Nombre,grammar2Nombre);
 				}
 	
 			} catch (Exception e2) {
@@ -212,11 +238,14 @@ public class ClasePrincipal {
 	}
 
 	private void addDoc(IndexWriter w, CompleteDocuments completeDocument, HashMap<Long, Long> elemtId2ClaseID,
-			HashMap<Long, Long> elemtId2Grammar, HashMap<Long, String> claseID2Nombre) throws IOException {
+			HashMap<Long, Long> elemtId2Grammar, HashMap<Long, String> claseID2Nombre, HashMap<Long, String> grammar2Nombre) throws IOException {
 		
 		 Document doc = new Document();
 		 
-		 doc.add(new TextField("ALL", completeDocument.getDescriptionText(), Field.Store.YES));
+		 doc.add(new TextField("ALL", completeDocument.getDescriptionText().toLowerCase(), Field.Store.YES));
+		 doc.add(new TextField("ALL", "PEPE", Field.Store.YES));
+		 
+		 HashSet<Long> Gramatica=new HashSet<Long>();
 		 
 		 for (CompleteElement elem : completeDocument.getDescription()) {
 			
@@ -235,6 +264,8 @@ public class ClasePrincipal {
 			 
 			 if (IDL!=null&&Value!=null&&!Value.isEmpty())
 			 {
+				 Value=Value.toLowerCase();
+				 
 				 Long IDclass=elemtId2ClaseID.get(IDL.getClavilenoid());
 				 
 				 if (IDclass!=null)
@@ -243,10 +274,26 @@ public class ClasePrincipal {
 				 String IDclassName=claseID2Nombre.get(IDL.getClavilenoid());
 				 
 				 if (IDclassName!=null)
-					 doc.add(new TextField(IDclassName, Value, Field.Store.YES));
+					 doc.add(new TextField(IDclassName.toLowerCase(), Value, Field.Store.YES));
+				 
+				 
+				 Long LongGram = elemtId2Grammar.get(IDL.getClavilenoid());
+				 
+				 if (LongGram!=null)
+				 	Gramatica.add(LongGram);
 			 }
 			 
+			 
+			
+			 
 			}
+		 
+		 
+		 for (Long long1 : Gramatica) {
+			 String name=grammar2Nombre.get(long1);
+			 if (name!=null&&!name.isEmpty())
+				 doc.add(new TextField("0", name, Field.Store.YES));
+		}
 
 		  w.addDocument(doc);
 		
