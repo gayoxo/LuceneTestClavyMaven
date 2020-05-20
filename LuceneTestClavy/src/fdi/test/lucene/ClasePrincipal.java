@@ -152,7 +152,8 @@ public class ClasePrincipal {
 					 if (element instanceof CompleteResourceElementFile)
 						 Value=((CompleteResourceElementFile) element).getValue().getPath();
 					
-					System.out.println(": "+Value.toLowerCase());
+					 if (Value!=null)
+						 System.out.println(": "+Value.toLowerCase());
 				}
 			}
 		}
