@@ -1,6 +1,9 @@
 package fdi.test.lucene;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.nio.file.Paths;
 import java.util.Scanner;
 
@@ -22,6 +25,9 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
+
+import fdi.ucm.server.modelComplete.collection.CompleteCollection;
+
 import org.apache.lucene.document.Field;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
@@ -33,6 +39,31 @@ public class ClasePrincipal {
 	private static final int MAX_SEARCH = 1000;
 
 	public static void main(String[] args) {
+		
+		if (args.length<1)
+			System.err.println("es necesario introducir algun archivo clavy");
+		
+		CompleteCollection object=null;
+		
+		try {
+			 File file = new File(args[1]);
+			 FileInputStream fis = new FileInputStream(file);
+			 ObjectInputStream ois = new ObjectInputStream(fis);
+			 object = (CompleteCollection) ois.readObject();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		boolean debug = false;
+		
+		if (args.length<2)
+			try {
+				
+			} catch (Exception e) {
+				
+			}
+		
 		 ClasePrincipal C = new ClasePrincipal();
 		C.process();
 		

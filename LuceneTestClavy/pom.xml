@@ -44,5 +44,12 @@
 			<artifactId>lucene-misc</artifactId>
 			<version>5.5.0</version>
 		</dependency>
+		<dependency>
+			<groupId>pluginModel</groupId>
+			<artifactId>pluginModel</artifactId>
+			<version>1</version>
+			<scope>system</scope>
+			<systemPath>${basedir}/ClavyPluginModel.jar</systemPath>
+		</dependency>
 	</dependencies>
 </project>
