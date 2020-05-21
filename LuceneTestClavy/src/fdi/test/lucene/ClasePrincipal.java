@@ -1,12 +1,19 @@
 package fdi.test.lucene;
 
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
+import java.io.Reader;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Scanner;
@@ -30,6 +37,10 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import fdi.ucm.server.modelComplete.collection.CompleteCollection;
 import fdi.ucm.server.modelComplete.collection.document.CompleteDocuments;
@@ -49,7 +60,8 @@ public class ClasePrincipal {
 	
 	private static final String DEFAULT_SEARCH_FIELD = "title";
 	private static final int MAX_SEARCH = 1000;
-
+	private LinkedList<String> StopApliqued;
+	
 	public static void main(String[] args) {
 		
 		if (args.length<1)
@@ -243,8 +255,40 @@ public class ClasePrincipal {
 		
 		 Document doc = new Document();
 		 
-		 doc.add(new TextField("ALL", completeDocument.getDescriptionText().toLowerCase(), Field.Store.YES));
-		 doc.add(new TextField("ALL", "PEPE", Field.Store.YES));
+		 String Descripcion= completeDocument.getDescriptionText().toLowerCase();
+		 
+		 List<Character> DescList=new LinkedList<Character>();
+		
+		 for (int i = 0; i < Descripcion.length(); i++) 
+				if ((Descripcion.charAt(i)>='a'&&Descripcion.charAt(i)<='z')||(Descripcion.charAt(i)>='0'&&Descripcion.charAt(i)<='9')||Descripcion.charAt(i)==' ')
+					DescList.add(Descripcion.charAt(i));
+		 
+		 
+		 StringBuffer SBA=new StringBuffer();
+		 
+		 for (Character chr : DescList) 
+			SBA.append(chr);
+		
+		 String[] ListaTA = SBA.toString().split(" ");
+		 
+		 List<String> listaT=new ArrayList<String>();
+		 
+		 for (String string : ListaTA)
+			listaT.add(string);
+		
+		 listaT.removeAll(StopApliqued);
+		 
+		 StringBuffer SB=new StringBuffer();
+		 for (String string : listaT) {
+			SB.append(string);
+			SB.append(" ");
+		}
+		 
+		Descripcion=SB.toString().trim(); 
+		 
+		 
+		 
+		 doc.add(new TextField("ALL", Descripcion , Field.Store.YES));
 		 
 		 HashSet<Long> Gramatica=new HashSet<Long>();
 		 
@@ -266,6 +310,36 @@ public class ClasePrincipal {
 			 if (IDL!=null&&Value!=null&&!Value.isEmpty())
 			 {
 				 Value=Value.toLowerCase();
+				
+				 
+				 
+				 List<Character> DescListVal=new LinkedList<Character>();
+					
+				 for (int i = 0; i < Value.length(); i++) 
+						if ((Value.charAt(i)>='a'&&Value.charAt(i)<='z')||(Value.charAt(i)>='0'&&Value.charAt(i)<='9')||Value.charAt(i)==' ')
+							DescListVal.add(Value.charAt(i));				 
+
+				 StringBuffer SBAV=new StringBuffer();
+				 
+				 for (Character chr : DescListVal) 
+					SBAV.append(chr);
+				
+				 String[] ListaTAV = SBAV.toString().split(" ");
+				 
+				 List<String> listaTV=new ArrayList<String>();
+				 
+				 for (String string : ListaTAV)
+					listaTV.add(string);
+				
+				 listaTV.removeAll(StopApliqued);
+				 
+				 StringBuffer SBV=new StringBuffer();
+				 for (String string : listaTV) {
+					SBV.append(string);
+					SBV.append(" ");
+				}
+				 
+				Value=SBV.toString().trim(); 
 				 
 				 Long IDclass=elemtId2ClaseID.get(IDL.getClavilenoid());
 				 
@@ -307,7 +381,27 @@ public class ClasePrincipal {
 	private Query query;
 	
 	public ClasePrincipal() {
-		// TODO Auto-generated constructor stub
+		 String resourceName = "stopwords-all.json";
+	        Reader is;
+	        StopApliqued = new LinkedList<String>();
+			try {
+				is = new FileReader(resourceName);
+				 JSONTokener tokener = new JSONTokener(is);
+			     JSONObject object = new JSONObject(tokener);
+			     JSONArray listaIngles = object.getJSONArray("es");
+			     for (int i = 0; i < listaIngles.length(); i++)
+			    	 StopApliqued.add(listaIngles.getString(i));
+				
+			    
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+	       
+//			for (String string : StopApliqued) 
+//				System.out.println(string);
+			
 	}
 
 	private void process() {
