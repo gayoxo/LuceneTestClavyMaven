@@ -104,7 +104,10 @@ public class ClasePrincipal {
 		
 		for (CompleteGrammar gramm : object.getMetamodelGrammar()) {
 			Pendientes.addAll(gramm.getSons());
-			Grammar2Nombre.put(gramm.getClavilenoid(), gramm.getNombre().toLowerCase());
+
+			String Bane = gramm.getNombre().toLowerCase();
+			Bane=CleanRaro(Bane);
+			Grammar2Nombre.put(gramm.getClavilenoid(), Bane);
 		}
 		
 		
@@ -124,7 +127,10 @@ public class ClasePrincipal {
 			
 			ElemtId2ClaseID.put(ID, IDClass);
 			
-			ClaseID2Nombre.put(ID, Act.getName().toLowerCase());
+			String Bane = Act.getName().toLowerCase();
+			Bane=CleanRaro(Bane);
+			
+			ClaseID2Nombre.put(ID, Bane);
 			
 			
 			if (Act.getCollectionFather()!=null)
@@ -207,6 +213,23 @@ public class ClasePrincipal {
 		sc.close();
 		
 		
+	}
+
+	private static String CleanRaro(String bane) {
+		String Nuevo = new String(bane);
+		
+		Nuevo=Nuevo.replace('á', 'a');
+		Nuevo=Nuevo.replace('à', 'a');
+		Nuevo=Nuevo.replace('é', 'e');
+		Nuevo=Nuevo.replace('è', 'e');
+		Nuevo=Nuevo.replace('í', 'i');
+		Nuevo=Nuevo.replace('ì', 'i');
+		Nuevo=Nuevo.replace('ó', 'o');
+		Nuevo=Nuevo.replace('ò', 'o');
+		Nuevo=Nuevo.replace('ú', 'u');
+		Nuevo=Nuevo.replace('ù', 'u');
+		
+		return Nuevo;
 	}
 
 	private void process(List<CompleteDocuments> estructuras, HashMap<Long, Long> elemtId2ClaseID,
@@ -453,6 +476,7 @@ public class ClasePrincipal {
 		      query = queryParser.parse(searchQuery);
 		      return indexSearcher.search(query, MAX_SEARCH);
 		   }
+	
 		   public Document getDocument(ScoreDoc scoreDoc) 
 		      throws CorruptIndexException, IOException {
 		      return indexSearcher.doc(scoreDoc.doc);	
